@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>1-100猜数字游戏</title>
+
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    margin:0;
+    background:#f5f5f5;
+}
+
+/* 顶部状态 */
+#status{
+    padding:10px;
+    background:#222;
+    color:white;
+    font-size:16px;
+}
+
+/* 按钮 */
+button{
+    padding:10px 15px;
+    margin:10px;
+    font-size:16px;
+}
+
+/* 网格 */
+#grid{
+    display:grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap:5px;
+    padding:10px;
+}
+
+/* 格子 */
+.cell{
+    background:#ddd;
+    padding:10px;
+    border-radius:5px;
+    font-size:14px;
+    cursor:pointer;
+    user-select:none;
+}
+
+/* 状态颜色 */
+.low{ background:#7ec8ff; }   /* 偏小 */
+.high{ background:#ff7a7a; }  /* 偏大 */
+.correct{ background:#7CFC00; } /* 猜中 */
+.guessWrong{ background:#ffa500; } /* 猜数错 */
+.lock{ pointer-events:none; }
+
+#panel{
+    margin:10px;
+}
+input{
+    padding:8px;
+    width:120px;
+    font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="status">点击开始游戏</div>
+
+<button onclick="startGame()">开始游戏</button>
+
+<div id="grid"></div>
+
+<div id="panel">
+    <input id="guessInput" type="number" placeholder="猜一个数"/>
+    <button onclick="guess()">猜数</button>
+</div>
+
+<script>
+
+let target = 0;
+let numbers = [];
+let gameOver = true;
+let min = 1;
+let max = 100;
+
+function startGame(){
+    numbers = [];
+    gameOver = false;
+    min = 1;
+    max = 100;
+
+    // 生成1-100并打乱
+    for(let i=1;i<=100;i++){
+        numbers.push(i);
+    }
+    numbers.sort(()=>Math.random()-0.5);
+
+    // 随机目标
+    target = Math.floor(Math.random()*100)+1;
+
+    document.getElementById("status").innerText = "范围：1 - 100";
+
+    render();
+}
+
+function render(){
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+
+    numbers.forEach((num,index)=>{
+        const div = document.createElement("div");
+        div.className = "cell";
+        div.innerText = "?";
+
+        div.onclick = function(){
+            if(gameOver) return;
+
+            div.innerText = num;
+
+            if(num == target){
+                div.classList.add("correct");
+                document.getElementById("status").innerText = "🎉 猜对了！";
+                gameOver = true;
+                lockAll();
+            }
+            else if(num < target){
+                div.classList.add("low");
+                min = Math.max(min, num);
+            }
+            else{
+                div.classList.add("high");
+                max = Math.min(max, num);
+            }
+
+            document.getElementById("status").innerText = "范围：" + min + " - " + max;
+        }
+
+        grid.appendChild(div);
+    });
+}
+
+function lockAll(){
+    document.querySelectorAll(".cell").forEach(c=>{
+        c.classList.add("lock");
+    });
+}
+
+function guess(){
+    if(gameOver) return;
+
+    let val = parseInt(document.getElementById("guessInput").value);
+    if(!val) return;
+
+    // 找对应格子
+    let cells = document.querySelectorAll(".cell");
+
+    numbers.forEach((n,i)=>{
+        if(n == val){
+            cells[i].innerText = n;
+
+            if(n == target){
+                cells[i].classList.add("correct");
+                document.getElementById("status").innerText = "🎉 猜对了！";
+                gameOver = true;
+                lockAll();
+            } else {
+                cells[i].classList.add("guessWrong");
+            }
+        }
+    });
+}
+
+</script>
+
+</body>
+</html>
